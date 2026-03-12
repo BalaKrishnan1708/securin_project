@@ -54,70 +54,102 @@ const App = () => {
     };
 
     return (
-        <div style={{ padding: '20px' }}>
-            <h1>CPE Dictionary API Explorer</h1>
+        <div className="app-container">
+            <header>
+                <h1>CPE Explorer</h1>
+                <p style={{ color: '#64748b', marginTop: '0.5rem' }}>Security Data Management & Vulnerability Tracking</p>
+            </header>
 
             <div className="search-container">
-                <input type="text" placeholder="Search Title" value={titleFilter} onChange={e => setTitleFilter(e.target.value)} />
-                <input type="text" placeholder="Search CPE 2.2" value={uri22Filter} onChange={e => setUri22Filter(e.target.value)} />
-                <input type="text" placeholder="Search CPE 2.3" value={uri23Filter} onChange={e => setUri23Filter(e.target.value)} />
+                <input type="text" placeholder="Filter by Title" value={titleFilter} onChange={e => setTitleFilter(e.target.value)} />
+                <input type="text" placeholder="Filter CPE 2.2 URI" value={uri22Filter} onChange={e => setUri22Filter(e.target.value)} />
+                <input type="text" placeholder="Filter CPE 2.3 URI" value={uri23Filter} onChange={e => setUri23Filter(e.target.value)} />
                 <input type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
                 
                 <select value={limit} onChange={e => setLimit(e.target.value)}>
-                    <option value="15">15 per page</option>
-                    <option value="25">25 per page</option>
-                    <option value="50">50 per page</option>
+                    <option value="15">15 results per page</option>
+                    <option value="25">25 results per page</option>
+                    <option value="50">50 results per page</option>
                 </select>
             </div>
 
-            {loading ? <p>Loading data...</p> : (
+            {loading ? (
+                <div className="loading-spinner">
+                    <p>Fetching the latest data...</p>
+                </div>
+            ) : (
                 <>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>CPE 2.2 URI</th>
-                                <th>CPE 2.3 URI</th>
-                                <th>Dep-Date 22</th>
-                                <th>Dep-Date 23</th>
-                                <th>References</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {cpes.map(item => (
-                                <tr key={item.id}>
-                                    <td><div className="truncate-text" title={item.cpe_title}>{item.cpe_title}</div></td>
-                                    <td>{item.cpe_22_uri}</td>
-                                    <td>{item.cpe_23_uri}</td>
-                                    <td>{formatDate(item.cpe_22_deprecation_date)}</td>
-                                    <td>{formatDate(item.cpe_23_deprecation_date)}</td>
-                                    <td style={{ position: 'relative' }}>
-                                        {item.reference_links.slice(0, 2).map((link, i) => (
-                                            <div key={i}><a href={link} target="_blank" className="truncate-text">{link}</a></div>
-                                        ))}
-                                        {item.reference_links.length > 2 && (
-                                            <button onClick={() => setPopoverId(popoverId === item.id ? null : item.id)} style={{ padding: '2px 5px', fontSize: '10px' }}>
-                                                {item.reference_links.length - 2} more
-                                            </button>
-                                        )}
-                                        {popoverId === item.id && (
-                                            <div className="popover-basic">
-                                                {item.reference_links.map((link, i) => (
-                                                     <div key={i}><a href={link} target="_blank">{link}</a></div>
-                                                ))}
-                                                <button onClick={() => setPopoverId(null)}>Close</button>
-                                            </div>
-                                        )}
-                                    </td>
+                    <div className="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>CPE Title</th>
+                                    <th>CPE 2.2 URI</th>
+                                    <th>CPE 2.3 URI</th>
+                                    <th>Dep-Date 22</th>
+                                    <th>Dep-Date 23</th>
+                                    <th>References</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {cpes.map(item => (
+                                    <tr key={item.id}>
+                                        <td>
+                                            <div className="truncate-text" title={item.cpe_title}>
+                                                {item.cpe_title}
+                                            </div>
+                                        </td>
+                                        <td><code>{item.cpe_22_uri}</code></td>
+                                        <td><code>{item.cpe_23_uri}</code></td>
+                                        <td>{formatDate(item.cpe_22_deprecation_date)}</td>
+                                        <td>{formatDate(item.cpe_23_deprecation_date)}</td>
+                                        <td style={{ position: 'relative' }}>
+                                            {item.reference_links.slice(0, 1).map((link, i) => (
+                                                <a key={i} href={link} target="_blank" rel="noopener noreferrer" className="ref-link">
+                                                    {link}
+                                                </a>
+                                            ))}
+                                            {item.reference_links.length > 1 && (
+                                                <button 
+                                                    onClick={() => setPopoverId(popoverId === item.id ? null : item.id)} 
+                                                    style={{ padding: '2px 8px', fontSize: '0.7rem', marginTop: '4px' }}
+                                                >
+                                                    +{item.reference_links.length - 1} more
+                                                </button>
+                                            )}
+                                            {popoverId === item.id && (
+                                                <div className="popover-basic">
+                                                    <div style={{ marginBottom: '0.75rem', fontWeight: '600', fontSize: '0.8rem', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
+                                                        All References
+                                                    </div>
+                                                    {item.reference_links.map((link, i) => (
+                                                         <a key={i} href={link} target="_blank" rel="noopener noreferrer">{link}</a>
+                                                    ))}
+                                                    <button onClick={() => setPopoverId(null)} style={{ width: '100%', marginTop: '0.5rem', background: '#f1f5f9', color: '#1e293b' }}>
+                                                        Close
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div className="pagination">
-                        <button disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
-                        <span>Page {page}</span>
-                        <button disabled={cpes.length < limit} onClick={() => setPage(page + 1)}>Next</button>
+                        <div className="pagination-info">
+                            Showing <strong>{cpes.length}</strong> of <strong>{total}</strong> records
+                        </div>
+                        <div className="pagination-controls">
+                            <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                                Previous
+                            </button>
+                            <span style={{ margin: '0 1rem' }}>Page {page}</span>
+                            <button disabled={cpes.length < limit} onClick={() => setPage(page + 1)}>
+                                Next
+                            </button>
+                        </div>
                     </div>
                 </>
             )}
